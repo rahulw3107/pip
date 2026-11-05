@@ -1,19 +1,42 @@
 import random
 import string
 
-alphabet = string.ascii_uppercase
-key = list(alphabet)
-random.shuffle(key)
-key = "".join(key)
 
-text = input("Enter text: ").upper()
-cipher = ""
+ALPHABET = string.ascii_uppercase
 
-for ch in text:
-    if ch in alphabet:
-        cipher += key[alphabet.index(ch)]
+
+def _validate_key(key):
+    key = key.upper()
+    if len(key) != len(ALPHABET) or set(key) != set(ALPHABET):
+        raise ValueError("The key must be a permutation of A through Z.")
+    return key
+
+
+def encrypt(text, key):
+    key = _validate_key(key)
+    return text.translate(str.maketrans(ALPHABET + ALPHABET.lower(), key + key.lower()))
+
+
+def decrypt(text, key):
+    key = _validate_key(key)
+    return text.translate(str.maketrans(key + key.lower(), ALPHABET + ALPHABET.lower()))
+
+
+def main():
+    mode = input("Choose encrypt or decrypt: ").strip().lower()
+    if mode not in ("encrypt", "decrypt"):
+        raise ValueError("Choose either encrypt or decrypt.")
+
+    text = input("Enter plaintext: " if mode == "encrypt" else "Enter ciphertext: ")
+    if mode == "encrypt":
+        key = "".join(random.sample(ALPHABET, len(ALPHABET)))
+        print("Substitution key:", key)
+        result = encrypt(text, key)
+        print("Cipher:", result)
     else:
-        cipher += ch
+        key = input("Enter the substitution key: ")
+        print("Plaintext:", decrypt(text, key))
 
-print("Substitution key:", key)
-print("Cipher:", cipher)
+
+if __name__ == "__main__":
+    main()

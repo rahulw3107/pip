@@ -1,13 +1,47 @@
-text = input("Enter plaintext: ").upper()
-key = input("Enter keyword: ").upper()
+def normalize_letters(text):
+    return "".join(ch for ch in text.upper() if "A" <= ch <= "Z")
 
-plain = "".join(ch for ch in text if ch.isalpha())
-stream = key + plain
-stream = stream[:len(plain)]
 
-cipher = ""
-for i in range(len(plain)):
-    x = (ord(plain[i]) - 65 + ord(stream[i]) - 65) % 26
-    cipher += chr(x + 65)
+def _validate_key(key):
+    key = normalize_letters(key)
+    if not key:
+        raise ValueError("The key must contain at least one letter.")
+    return key
 
-print("Cipher:", cipher)
+
+def encrypt(plaintext, key):
+    plaintext = normalize_letters(plaintext)
+    key = _validate_key(key)
+    keystream = (key + plaintext)[:len(plaintext)]
+    return "".join(
+        chr((ord(char) - ord("A") + ord(shift) - ord("A")) % 26 + ord("A"))
+        for char, shift in zip(plaintext, keystream)
+    )
+
+
+def decrypt(ciphertext, key):
+    ciphertext = normalize_letters(ciphertext)
+    key = _validate_key(key)
+    plaintext = ""
+
+    for index, char in enumerate(ciphertext):
+        shift = key[index] if index < len(key) else plaintext[index - len(key)]
+        value = (ord(char) - ord("A") - ord(shift) + ord("A")) % 26
+        plaintext += chr(value + ord("A"))
+
+    return plaintext
+
+
+def main():
+    mode = input("Choose encrypt or decrypt: ").strip().lower()
+    if mode not in ("encrypt", "decrypt"):
+        raise ValueError("Choose either encrypt or decrypt.")
+
+    text = input("Enter plaintext: " if mode == "encrypt" else "Enter ciphertext: ")
+    key = input("Enter keyword: ")
+    result = encrypt(text, key) if mode == "encrypt" else decrypt(text, key)
+    print("Cipher:" if mode == "encrypt" else "Plaintext:", result)
+
+
+if __name__ == "__main__":
+    main()
